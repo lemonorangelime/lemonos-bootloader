@@ -1,2 +1,2 @@
 # lemonos-bootloader
-bootloader
+grub is too annoying and bloated
