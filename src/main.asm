@@ -3,12 +3,7 @@ bits 16
 section .boot
 
 extern bootdrive
-extern clear_screen
-extern set_video_mode
-extern set_video_page
-extern find_vesa_mode
 extern unreal_mode
-extern puts
 
 main:
 	jmp 0x0000:.fixup
@@ -54,6 +49,10 @@ main:
 .loop:
 	jmp .loop
 
+;
+; GDT.ASM
+;
+
 align 16
 gdtbits: ; LemonOS will overwrite this
 	dd 0, 0
@@ -70,6 +69,91 @@ align 64
 video_error_string:
 	db "ERROR: 640x480 video mode unsupported", 13, 10, 0
 
+;
+; PRINTING.ASM
+;
+
+
+preputs:
+	call putc
+puts:
+	mov al, [es:di]
+	add di, 1
+	cmp al, 0
+	jne preputs
+	ret
+
+putc:
+	mov ah, 0x0e
+	mov bh, 0
+	mov bl, 0x07
+	int 0x10
+	ret
+
+;
+; VESA.ASM
+;
+
+set_vesa_mode:
+	mov ax, 0x4f02
+	int 0x10
+	ret
+
+clear_screen:
+	mov ah, 0x00
+	mov al, 0x02
+	int 0x10
+	ret
+
+get_vesa_info:
+	mov ax, 0x4f01
+	int 0x10
+	ret
+
+find_vesa_mode:
+	mov cx, 0x0000
+.start:
+	mov di, 0x1000
+	call get_vesa_info
+
+	mov al, [0x101b]
+	cmp al, 0x06
+	jne .end
+
+	mov al, [0x1019]
+	cmp al, 32
+	jne .end
+
+	mov ax, [0x1012]
+	cmp ax, 640
+	jne .end
+
+	mov ax, [0x1014]
+	cmp ax, 480
+	jne .end
+
+	mov bx, cx
+	call set_vesa_mode
+	mov ax, 1
+	ret
+.end:
+	add cx, 1
+	cmp cx, 0x0fff
+	jne .start
+	mov ax, 0
+	ret
+
+;
+; REGISTRY.ASM
+;
+
+extern bootdrive
+bootdrive: dw 0x00
+
+;
+; DISK.ASM
+;
+
 readsector:
 	mov ah, 0x02
 	mov al, 0x1
@@ -78,6 +162,34 @@ readsector:
 	mov dh, 0
 	add bx, 512 ; mov bx, 0x7e00
 	int 0x13
+	ret
+
+;
+; A20.ASM
+;
+
+bits 32
+
+extern enable_a20
+enable_a20:
+	in al, 0x92
+	or al, 2
+	out 0x92, al
+	ret
+
+extern test_a20
+test_a20:
+	mov [0x000800], esi
+	mov [0x100800], edi
+
+	mov eax, [0x000800]
+	cmp eax, 0x100800
+	je .ret
+
+	mov eax, 1
+	ret
+.ret:
+	mov eax, 0
 	ret
 
 times 510 - ($ - $$) db 0
