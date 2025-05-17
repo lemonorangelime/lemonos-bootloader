@@ -49,6 +49,8 @@ main:
 .loop:
 	jmp .loop
 
+
+
 ;
 ; GDT.ASM
 ;
@@ -69,10 +71,11 @@ align 64
 video_error_string:
 	db "ERROR: 640x480 video mode unsupported", 13, 10, 0
 
+
+
 ;
 ; PRINTING.ASM
 ;
-
 
 preputs:
 	call putc
@@ -89,6 +92,8 @@ putc:
 	mov bl, 0x07
 	int 0x10
 	ret
+
+
 
 ;
 ; VESA.ASM
@@ -143,12 +148,16 @@ find_vesa_mode:
 	mov ax, 0
 	ret
 
+
+
 ;
 ; REGISTRY.ASM
 ;
 
 extern bootdrive
 bootdrive: dw 0x00
+
+
 
 ;
 ; DISK.ASM
@@ -164,20 +173,21 @@ readsector:
 	int 0x13
 	ret
 
+
+
+; -- 32 bit section --
+bits 32
+
 ;
 ; A20.ASM
 ;
 
-bits 32
-
-extern enable_a20
 enable_a20:
 	in al, 0x92
 	or al, 2
 	out 0x92, al
 	ret
 
-extern test_a20
 test_a20:
 	mov [0x000800], esi
 	mov [0x100800], edi
@@ -191,6 +201,25 @@ test_a20:
 .ret:
 	mov eax, 0
 	ret
+
+
+
+;
+; UNREAL.asm
+;
+
+unreal_mode:
+        mov ax, 16
+        mov ds, ax
+        mov ss, ax
+
+        mov esp, 0x7000
+
+        call enable_a20
+        call test_a20
+
+.loop:
+        jmp .loop
 
 times 510 - ($ - $$) db 0
 dw 0xaa55
