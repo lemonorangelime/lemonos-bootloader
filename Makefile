@@ -17,4 +17,4 @@ build: $(OBJS)
 	objcopy -O binary build/bootloader.o disk.img
 
 qemu:
-	qemu-system-i386 -cpu host -enable-kvm -fda disk.img -boot adc
+	qemu-system-i386 -cpu host -enable-kvm -fda disk.img -serial stdio -vga std -machine acpi=on -boot adc -m 8M
