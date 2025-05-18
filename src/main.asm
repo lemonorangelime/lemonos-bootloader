@@ -2,9 +2,6 @@ bits 16
 
 section .boot
 
-extern bootdrive
-extern unreal_mode
-
 main:
 	jmp 0x0000:.fixup
 .fixup:
@@ -35,8 +32,8 @@ main:
 	mov di, video_error_string
 	call puts
 	jmp .loop
-.skip:
 
+.skip:
 	xor ax, ax
 	mov ds, ax
 	lgdt [gdt]
@@ -55,7 +52,6 @@ main:
 ; GDT.ASM
 ;
 
-align 16
 gdtbits: ; LemonOS will overwrite this
 	dd 0, 0
 	dd 0x0000ffff, 0x00cf9a00
@@ -66,10 +62,6 @@ gdt:
 	dw gdt - gdtbits - 1
 	dd gdtbits
 	dd 0, 0
-align 64
-
-video_error_string:
-	db "ERROR: 640x480 video mode unsupported", 13, 10, 0
 
 
 
@@ -88,7 +80,7 @@ puts:
 
 putc:
 	mov ah, 0x0e
-	mov bh, 0
+	xor bh, bh
 	mov bl, 0x07
 	int 0x10
 	ret
@@ -105,7 +97,7 @@ set_vesa_mode:
 	ret
 
 clear_screen:
-	mov ah, 0x00
+	xor ah, ah
 	mov al, 0x02
 	int 0x10
 	ret
@@ -116,7 +108,7 @@ get_vesa_info:
 	ret
 
 find_vesa_mode:
-	mov cx, 0x0000
+	xor cx, cx
 .start:
 	mov di, 0x1000
 	call get_vesa_info
@@ -145,8 +137,11 @@ find_vesa_mode:
 	add cx, 1
 	cmp cx, 0x0fff
 	jne .start
-	mov ax, 0
+	xor ax, ax
 	ret
+
+video_error_string:
+	db "ERROR: 640x480 video mode unsupported", 13, 10, 0
 
 
 
@@ -166,9 +161,9 @@ bootdrive: dw 0x00
 readsector:
 	mov ah, 0x02
 	mov al, 0x1
-	mov ch, 0
+	xor ch, ch
 	add cl, 1 ; mov cl, 2
-	mov dh, 0
+	xor dh, dh
 	add bx, 512 ; mov bx, 0x7e00
 	int 0x13
 	ret
@@ -199,7 +194,7 @@ test_a20:
 	mov eax, 1
 	ret
 .ret:
-	mov eax, 0
+	xor eax, eax
 	ret
 
 
