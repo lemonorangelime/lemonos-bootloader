@@ -31,7 +31,7 @@ main:
 	je .skip
 	mov di, video_error_string
 	call puts
-	jmp .loop
+	jmp $
 
 .skip:
 	xor ax, ax
@@ -43,8 +43,6 @@ main:
 	mov cr0, eax
 
 	jmp 0x08:unreal_mode
-.loop:
-	jmp .loop
 
 
 
