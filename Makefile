@@ -7,7 +7,7 @@ mkdir:
 	mkdir -p build
 
 clean:
-	rm -rf build
+	rm -rf build disk.img
 
 build/%.o: src/%.asm
 	nasm -felf $^ -o $@

@@ -1,2 +1,2 @@
 # lemonos-bootloader
-grub is too annoying and bloated
+bootloader for floppy disk/hard disk (CDROM unsupported)
